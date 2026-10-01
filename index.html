@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tool Phiên VIP</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0a0a;}
+#game{position:fixed;inset:0;width:100vw;height:100vh;border:none;z-index:1;}
+
+#toggleBtn{
+  position:fixed;top:14px;right:14px;z-index:99999;
+  padding:8px 18px;border-radius:22px;border:2px solid #1e88e5;
+  background:linear-gradient(135deg,#0d1b2a,#1b3a5c);
+  color:#e3f2fd;font-size:12px;font-weight:bold;cursor:pointer;
+  box-shadow:0 0 20px rgba(30,136,229,.6),inset 0 0 12px rgba(30,136,229,.3);
+  animation:glowBtn 2s infinite;touch-action:none;
+  letter-spacing:1px;
+}
+@keyframes glowBtn{
+  0%,100%{box-shadow:0 0 20px rgba(30,136,229,.6),inset 0 0 12px rgba(30,136,229,.3);}
+  50%{box-shadow:0 0 35px rgba(30,136,229,1),inset 0 0 20px rgba(30,136,229,.5);}
+}
+
+#tool{
+  position:fixed;top:60px;right:14px;z-index:99998;width:260px;
+  background:linear-gradient(160deg,#0d1b2a,#102a43,#0d1b2a);
+  border-radius:18px;padding:12px;
+  border:1.5px solid rgba(30,136,229,.5);
+  box-shadow:0 0 30px rgba(30,136,229,.5),inset 0 0 20px rgba(30,136,229,.08);
+  display:none;touch-action:none;overflow:hidden;
+}
+#tool.open{display:block;}
+#tool::before{
+  content:'';position:absolute;top:0;left:-100%;width:100%;height:2px;
+  background:linear-gradient(90deg,transparent,#1e88e5,transparent);
+  animation:scanLine 3s linear infinite;
+}
+@keyframes scanLine{0%{left:-100%}100%{left:100%}}
+
+#dragHandle{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:10px;cursor:move;padding:6px 8px;border-radius:10px;
+  background:linear-gradient(90deg,rgba(30,136,229,.2),rgba(30,136,229,.05));
+  border:1px solid rgba(30,136,229,.3);
+}
+#toolTitle{
+  font-size:11px;font-weight:bold;color:#e3f2fd;letter-spacing:1.5px;
+  text-shadow:0 0 10px rgba(30,136,229,.9);
+}
+#closeBtn{
+  width:20px;height:20px;border-radius:50%;border:none;
+  background:linear-gradient(135deg,#1e88e5,#1565c0);
+  color:#fff;font-size:11px;font-weight:bold;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 10px rgba(30,136,229,.7);
+}
+
+#phienPanel{
+  background:linear-gradient(160deg,rgba(30,136,229,.12),rgba(30,136,229,.03));
+  border-radius:12px;padding:10px;margin-bottom:10px;
+  border:1px solid rgba(30,136,229,.3);
+  box-shadow:inset 0 0 15px rgba(30,136,229,.1);
+}
+
+#phienInput{
+  width:100%;height:44px;border-radius:10px;
+  border:2px solid rgba(30,136,229,.5);
+  background:linear-gradient(180deg,#0a1420,#0d1b2a);
+  color:#e3f2fd;font-size:20px;font-family:'Courier New',monospace;
+  text-align:center;letter-spacing:8px;font-weight:bold;
+  outline:none;box-sizing:border-box;
+  -webkit-text-size-adjust:100%;touch-action:manipulation;
+  text-shadow:0 0 12px rgba(30,136,229,.9);
+  transition:all .3s;
+}
+#phienInput:focus{
+  border-color:#42a5f5;
+  box-shadow:0 0 20px rgba(30,136,229,.7),inset 0 0 15px rgba(30,136,229,.3);
+}
+#phienInput::placeholder{color:rgba(227,242,253,.35);letter-spacing:4px;font-size:14px;}
+
+.inputInfo{
+  display:flex;justify-content:space-between;font-size:9px;
+  color:#bbdefb;opacity:.8;margin:6px 4px 0;
+  letter-spacing:.5px;
+}
+
+#analyzeBtn{
+  width:100%;padding:10px;border-radius:12px;border:none;
+  background:linear-gradient(135deg,#1e88e5,#42a5f5,#1e88e5);
+  background-size:200% 100%;
+  color:#fff;font-weight:bold;font-size:12px;cursor:pointer;
+  box-shadow:0 0 20px rgba(30,136,229,.7),inset 0 0 10px rgba(255,255,255,.2);
+  letter-spacing:2px;text-shadow:0 0 5px rgba(255,255,255,.6);
+  animation:shine 2s infinite;
+  transition:transform .15s;
+}
+@keyframes shine{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+#analyzeBtn:active{transform:scale(.96);}
+
+#resultBox{
+  background:linear-gradient(160deg,rgba(30,136,229,.12),rgba(30,136,229,.03));
+  border-radius:12px;padding:8px;margin-top:10px;
+  border:1px solid rgba(30,136,229,.3);
+}
+#resultTitle{
+  font-size:9px;font-weight:bold;color:#e3f2fd;margin-bottom:6px;
+  display:flex;justify-content:space-between;letter-spacing:1.5px;
+  text-shadow:0 0 8px rgba(30,136,229,.7);
+}
+#resultTitle span{opacity:.55;font-weight:normal;}
+
+#resultGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.resultCard{
+  border-radius:10px;padding:10px 6px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.resultCard::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  animation:cardPulse 1.5s infinite;
+}
+@keyframes cardPulse{0%,100%{opacity:.5}50%{opacity:1}}
+
+.resultCard.tai{
+  background:linear-gradient(160deg,rgba(30,136,229,.2),rgba(30,136,229,.05));
+  border:1.5px solid rgba(66,165,245,.7);
+  box-shadow:0 0 15px rgba(30,136,229,.4),inset 0 0 12px rgba(30,136,229,.15);
+}
+.resultCard.tai::before{background:linear-gradient(90deg,transparent,#42a5f5,transparent);}
+.resultCard.xiu{
+  background:linear-gradient(160deg,rgba(227,242,253,.15),rgba(227,242,253,.03));
+  border:1.5px solid rgba(227,242,253,.6);
+  box-shadow:0 0 15px rgba(227,242,253,.3),inset 0 0 12px rgba(227,242,253,.1);
+}
+.resultCard.xiu::before{background:linear-gradient(90deg,transparent,#e3f2fd,transparent);}
+
+.resultCard.win{
+  animation:winPulse 1s infinite;
+  transform:scale(1.03);
+}
+@keyframes winPulse{
+  0%,100%{box-shadow:0 0 20px rgba(66,165,245,.6),inset 0 0 15px rgba(66,165,245,.3);}
+  50%{box-shadow:0 0 40px rgba(66,165,245,1),inset 0 0 25px rgba(66,165,245,.5);}
+}
+
+.resultLabel{
+  font-size:11px;font-weight:bold;margin-bottom:5px;letter-spacing:1.5px;
+}
+.resultCard.tai .resultLabel{color:#42a5f5;text-shadow:0 0 10px rgba(66,165,245,.9);}
+.resultCard.xiu .resultLabel{color:#e3f2fd;text-shadow:0 0 10px rgba(227,242,253,.9);}
+
+.resultPercent{font-size:20px;font-weight:bold;font-family:'Courier New',monospace;}
+.resultCard.tai .resultPercent{color:#42a5f5;text-shadow:0 0 12px rgba(66,165,245,.9);}
+.resultCard.xiu .resultPercent{color:#e3f2fd;text-shadow:0 0 12px rgba(227,242,253,.9);}
+
+.resultBar{
+  height:4px;border-radius:2px;background:rgba(0,0,0,.5);
+  margin-top:6px;overflow:hidden;
+  box-shadow:inset 0 0 5px rgba(0,0,0,.8);
+}
+.resultBarFill{height:100%;border-radius:2px;transition:width .6s;}
+.resultCard.tai .resultBarFill{
+  background:linear-gradient(90deg,#1e88e5,#42a5f5);
+  box-shadow:0 0 8px #42a5f5;
+}
+.resultCard.xiu .resultBarFill{
+  background:linear-gradient(90deg,#bbdefb,#e3f2fd);
+  box-shadow:0 0 8px #e3f2fd;
+}
+
+#statusMsg{
+  font-size:9px;text-align:center;color:#bbdefb;margin-top:6px;
+  min-height:12px;letter-spacing:.5px;opacity:.9;
+}
+
+#cauInfo{
+  font-size:9px;text-align:center;color:#90caf9;
+  margin-top:4px;min-height:12px;letter-spacing:.3px;
+  opacity:.85;
+}
+
+.badge{
+  display:inline-block;
+  padding:1px 6px;
+  border-radius:6px;
+  font-size:8px;
+  font-weight:bold;
+  margin:0 2px;
+  letter-spacing:.5px;
+}
+.badge.hot{background:rgba(255,68,102,.3);color:#ff6688;border:1px solid #ff4466;}
+.badge.cold{background:rgba(66,165,245,.3);color:#66b8f5;border:1px solid #42a5f5;}
+.badge.warm{background:rgba(255,215,0,.25);color:#ffd966;border:1px solid #ffd966;}
+</style>
+</head>
+<body>
+<iframe id="game" src="https://web.sunwin.villas/"></iframe>
+<button id="toggleBtn">LE MINH TOOL SUNWIN🧃</button>
+<div id="tool">
+  <div id="dragHandle"><div id="toolTitle">⚡ SUNWIN TOOL🔫 ⚡</div><button id="closeBtn">✕</button></div>
+  <div id="phienPanel">
+    <input id="phienInput" type="text" inputmode="numeric" maxlength="7" placeholder="NHẬP 7 SỐ">
+    <div class="inputInfo"><span id="phienCount">0/7</span><span id="phienStatus"> PHÂN TÍCH SUNWIN🚀</span></div>
+  </div>
+  <button id="analyzeBtn">⚡ PHÂN TÍCH SUNWIN⚡</button>
+  <div id="resultBox">
+    <div id="resultTitle"><span>KẾT QUẢ</span><span>SUNWIN🔫</span></div>
+    <div id="resultGrid">
+      <div class="resultCard tai" id="cardTai"><div class="resultLabel">TÀI</div><div class="resultPercent" id="taiPercent">0%</div><div class="resultBar"><div class="resultBarFill" id="taiBar" style="width:0%"></div></div></div>
+      <div class="resultCard xiu" id="cardXiu"><div class="resultLabel">XỈU</div><div class="resultPercent" id="xiuPercent">0%</div><div class="resultBar"><div class="resultBarFill" id="xiuBar" style="width:0%"></div></div></div>
+    </div>
+    <div id="statusMsg"></div>
+    <div id="cauInfo"></div>
+  </div>
+</div>
+
+<script>
+const toggleBtn=document.getElementById("toggleBtn"),tool=document.getElementById("tool"),closeBtn=document.getElementById("closeBtn"),dragHandle=document.getElementById("dragHandle"),phienInput=document.getElementById("phienInput"),phienCount=document.getElementById("phienCount"),phienStatus=document.getElementById("phienStatus"),analyzeBtn=document.getElementById("analyzeBtn"),taiPercent=document.getElementById("taiPercent"),xiuPercent=document.getElementById("xiuPercent"),taiBar=document.getElementById("taiBar"),xiuBar=document.getElementById("xiuBar"),statusMsg=document.getElementById("statusMsg"),cauInfo=document.getElementById("cauInfo"),cardTai=document.getElementById("cardTai"),cardXiu=document.getElementById("cardXiu");
+
+toggleBtn.addEventListener("click",()=>tool.classList.toggle("open"));
+closeBtn.addEventListener("click",()=>tool.classList.remove("open"));
+
+let dragging=false,ox=0,oy=0;
+dragHandle.addEventListener("mousedown",e=>{if(e.target===closeBtn)return;dragging=true;ox=e.clientX-tool.offsetLeft;oy=e.clientY-tool.offsetTop;});
+dragHandle.addEventListener("touchstart",e=>{if(e.target===closeBtn)return;const t=e.touches[0];dragging=true;ox=t.clientX-tool.offsetLeft;oy=t.clientY-tool.offsetTop;},{passive:true});
+document.addEventListener("mousemove",e=>{if(!dragging)return;tool.style.left=(e.clientX-ox)+"px";tool.style.top=(e.clientY-oy)+"px";tool.style.right="auto";});
+document.addEventListener("touchmove",e=>{if(!dragging)return;const t=e.touches[0];tool.style.left=(t.clientX-ox)+"px";tool.style.top=(t.clientY-oy)+"px";tool.style.right="auto";},{passive:false});
+document.addEventListener("mouseup",()=>dragging=false);
+document.addEventListener("touchend",()=>dragging=false);
+
+phienInput.addEventListener("input",()=>{
+  phienInput.value=phienInput.value.replace(/[^0-9]/g,"");
+  phienCount.textContent=phienInput.value.length+"/7";
+});
+
+/* ============ CÔNG THỨC BẮT CẦU SUNWIN ============ */
+function tachSo(s){const a=[];for(let i=0;i<s.length;i++)a.push(parseInt(s[i])||0);return a;}
+function tinhTong(arr){let t=0;for(let i=0;i<arr.length;i++)t+=arr[i];return t;}
+
+/* Công thức bắt cầu Sunwin - 6 loại cầu chính */
+function batCauSunwin(arr){
+  const n=arr.length;
+  let cauBet=0,       // Cầu bệt 2 số giống
+      cauBet3=0,      // Cầu bệt 3 số giống
+      cauDao=0,       // Cầu đảo tăng giảm
+      cau11=0,        // Cầu 1-1 chẵn lẻ
+      cau22=0,        // Cầu 2-2 cặp
+      cau33=0,        // Cầu 3-3
+      cauLap=0;       // Cầu lặp vị trí
+
+  // Cầu bệt 2
+  for(let i=0;i<n-1;i++){
+    if(arr[i]===arr[i+1])cauBet++;
+  }
+  // Cầu bệt 3
+  for(let i=0;i<n-2;i++){
+    if(arr[i]===arr[i+1]&&arr[i+1]===arr[i+2])cauBet3++;
+  }
+  // Cầu đảo (tăng giảm xen kẽ)
+  for(let i=0;i<n-2;i++){
+    const t1=arr[i+1]-arr[i];
+    const t2=arr[i+2]-arr[i+1];
+    if(t1*t2<0)cauDao++;
+  }
+  // Cầu 1-1 (chẵn lẻ xen kẽ)
+  for(let i=0;i<n-2;i++){
+    const p1=arr[i]%2,p2=arr[i+1]%2,p3=arr[i+2]%2;
+    if(p1!==p2&&p2!==p3&&p1===p3)cau11++;
+  }
+  // Cầu 2-2 (cặp số giống)
+  for(let i=0;i<n-3;i++){
+    if(arr[i]===arr[i+1]&&arr[i+2]===arr[i+3]&&arr[i]!==arr[i+2])cau22++;
+  }
+  // Cầu 3-3 (bộ 3 giống)
+  for(let i=0;i<n-5;i++){
+    if(arr[i]===arr[i+1]&&arr[i+1]===arr[i+2]&&
+       arr[i+3]===arr[i+4]&&arr[i+4]===arr[i+5]&&
+       arr[i]!==arr[i+3])cau33++;
+  }
+  // Cầu lặp vị trí (đối xứng)
+  for(let i=0;i<Math.floor(n/2);i++){
+    if(arr[i]===arr[n-1-i])cauLap++;
+  }
+
+  // Xác định cầu mạnh nhất
+  const scores=[
+    {name:"Bệt",score:cauBet*10},
+    {name:"Bệt3",score:cauBet3*18},
+    {name:"Đảo",score:cauDao*12},
+    {name:"1-1",score:cau11*15},
+    {name:"2-2",score:cau22*20},
+    {name:"3-3",score:cau33*25},
+    {name:"Lặp",score:cauLap*8}
+  ];
+  scores.sort((a,b)=>b.score-a.score);
+  const cauManh=scores[0].score>0?scores[0].name:"Không rõ";
+  const doManh=Math.min(scores[0].score,100);
+
+  return{cauBet,cauBet3,cauDao,cau11,cau22,cau33,cauLap,cauManh,doManh,scores};
+}
+
+/* Nhận diện phiên */
+function nhanDienPhien(s){
+  const arr=tachSo(s);
+  const n=arr.length;
+  let chan=0,le=0,lon=0,nho=0,tong=0;
+  for(let i=0;i<n;i++){
+    tong+=arr[i];
+    if(arr[i]%2===0)chan++;else le++;
+    if(arr[i]>=5)lon++;else nho++;
+  }
+  const cau=batCauSunwin(arr);
+  const lechChan=chan-le;
+  const lechLon=lon-nho;
+  // Xu hướng theo tổng Sunwin: >=25 Tài, <=20 Xỉu
+  let xuHuong="TB";
+  if(tong>=25)xuHuong="T";
+  else if(tong<=20)xuHuong="X";
+  return{arr,tong,chan,le,lon,nho,cau,lechChan,lechLon,xuHuong};
+}
+
+/* ========== THUẬT TOÁN TÀI NÂNG CẤP ========== */
+function diemTai(s){
+  const p=nhanDienPhien(s);
+  let score=0;
+
+  // Tầng 1: Tổng Sunwin
+  if(p.tong>=30)score+=18;
+  else if(p.tong>=25)score+=15;
+  else if(p.tong>=22)score+=8;
+
+  // Tầng 2: Chẵn lẻ
+  if(p.tong%2===0)score+=6;
+  if(p.lechChan>0)score+=10;
+  if(p.lechChan===0)score+=5;
+
+  // Tầng 3: Lớn nhỏ
+  if(p.lon>p.nho)score+=12;
+  if(p.lon>=5)score+=6;
+  if(p.arr[0]>=5)score+=4;
+  if(p.arr[p.arr.length-1]>=5)score+=8;
+
+  // Tầng 4: Cầu Sunwin
+  if(p.cau.cauBet>=2)score+=10;
+  if(p.cau.cauBet3>=1)score+=14;
+  if(p.cau.cauDao>=2)score+=8;
+  if(p.cau.cau11>=1)score+=6;
+  if(p.cau.cau22>=1)score+=10;
+  if(p.cau.cauLap>=2)score+=6;
+
+  // Tầng 5: Vị trí
+  if(p.arr[0]+p.arr[1]>=9)score+=5;
+  if(p.arr[2]>=5)score+=4;
+  if(p.arr[3]+p.arr[4]>=9)score+=5;
+  if(p.arr[5]>=5)score+=3;
+
+  // Tầng 6: Seed
+  let tongChar=0;
+  for(let i=0;i<s.length;i++)tongChar+=s.charCodeAt(i);
+  if(tongChar%2===0)score+=8;
+  const seed=(tongChar*31)^(p.arr.length*17);
+  if(seed%3===0)score+=6;
+  if(seed%5===0)score+=4;
+
+  // Tầng 7: Đối xứng
+  if(p.arr[0]===p.arr[6])score+=5;
+  if(p.arr[1]===p.arr[5])score+=4;
+  if(p.arr[2]===p.arr[4])score+=3;
+
+  return score>100?100:score;
+}
+
+/* ========== THUẬT TOÁN XỈU NÂNG CẤP ========== */
+function diemXiu(s){
+  const p=nhanDienPhien(s);
+  let score=0;
+
+  if(p.tong<=15)score+=18;
+  else if(p.tong<=20)score+=15;
+  else if(p.tong<=23)score+=8;
+
+  if(p.tong%2!==0)score+=6;
+  if(p.lechChan<0)score+=10;
+  if(p.lechChan===0)score+=5;
+
+  if(p.nho>p.lon)score+=12;
+  if(p.nho>=5)score+=6;
+  if(p.arr[0]<=4)score+=4;
+  if(p.arr[p.arr.length-1]<=4)score+=8;
+
+  if(p.cau.cauBet>=2)score+=8;
+  if(p.cau.cauBet3>=1)score+=12;
+  if(p.cau.cauDao>=2)score+=10;
+  if(p.cau.cau11>=1)score+=6;
+  if(p.cau.cau22>=1)score+=10;
+  if(p.cau.cauLap>=2)score+=6;
+
+  if(p.arr[0]+p.arr[1]<=5)score+=5;
+  if(p.arr[2]<=4)score+=4;
+  if(p.arr[3]+p.arr[4]<=5)score+=5;
+  if(p.arr[5]<=4)score+=3;
+
+  let tongChar=0;
+  for(let i=0;i<s.length;i++)tongChar+=s.charCodeAt(i);
+  if(tongChar%2!==0)score+=8;
+  const seed=(tongChar*37)^(p.arr.length*23);
+  if(seed%3===0)score+=6;
+  if(seed%7===0)score+=4;
+
+  if(p.arr[0]===p.arr[6])score+=5;
+  if(p.arr[1]===p.arr[5])score+=4;
+  if(p.arr[2]===p.arr[4])score+=3;
+
+  return score>100?100:score;
+}
+
+/* ========== TTOAN MINHLE ========== */
+function phanTich(input){
+  const p=nhanDienPhien(input);
+  const taiScore=diemTai(input);
+  const xiuScore=diemXiu(input);
+  const total=taiScore+xiuScore||1;
+  let taiP=(taiScore*100/total);
+  let xiuP=(xiuScore*100/total);
+
+  // Nếu cầu mạnh => tăng độ tin cậy
+  const cauManh=p.cau.doManh;
+  if(cauManh>=50){
+    if(taiScore>xiuScore)taiP=Math.min(95,taiP+8);
+    else xiuP=Math.min(95,xiuP+8);
+  } else if(cauManh>=30){
+    if(taiScore>xiuScore)taiP=Math.min(92,taiP+4);
+    else xiuP=Math.min(92,xiuP+4);
+  }
+
+  taiP=taiP-(taiP%1);
+  xiuP=100-taiP;
+  if(taiP<25)taiP=25;
+  if(taiP>95)taiP=95;
+  xiuP=100-taiP;
+
+  return{tai:taiP,xiu:xiuP,taiScore:taiScore,xiuScore:xiuScore,cau:p.cau,tong:p.tong};
+}
+
+function traKetQua(input){
+  const kq=phanTich(input);
+  if(kq.tai>kq.xiu){
+    return{kq:"TÀI",doTinCay:kq.tai,tai:kq.tai,xiu:kq.xiu,cau:kq.cau,tong:kq.tong};
+  }else{
+    return{kq:"XỈU",doTinCay:kq.xiu,tai:kq.tai,xiu:kq.xiu,cau:kq.cau,tong:kq.tong};
+  }
+}
+
+function hienThiCau(cau){
+  let badge="";
+  if(cau.cauManh==="Bệt3"||cau.cauManh==="3-3")badge='<span class="badge hot">🔥'+cau.cauManh+'</span>';
+  else if(cau.cauManh==="2-2"||cau.cauManh==="Bệt")badge='<span class="badge warm">⚡'+cau.cauManh+'</span>';
+  else if(cau.cauManh==="1-1"||cau.cauManh==="Đảo")badge='<span class="badge cold">💧'+cau.cauManh+'</span>';
+  else badge='<span class="badge">'+cau.cauManh+'</span>';
+  return "Cầu: "+badge+" |  mạnh: "+cau.doManh+"%";
+}
+
+analyzeBtn.addEventListener("click",()=>{
+  const input=phienInput.value.trim();
+  if(input.length!==7){
+    statusMsg.textContent="⚠ PHIÊN PHẢI ĐỦ 7 SỐ";
+    statusMsg.style.color="#ff4466";
+    return;
+  }
+  statusMsg.textContent="⚡ PHÂN TÍCH SUNWIN🚀...";
+  statusMsg.style.color="#e3f2fd";
+  cauInfo.textContent="";
+  cardTai.classList.remove("win");
+  cardXiu.classList.remove("win");
+
+  setTimeout(()=>{
+    const kq=phanTich(input);
+    const tra=traKetQua(input);
+
+    taiPercent.textContent=kq.tai+"%";
+    xiuPercent.textContent=kq.xiu+"%";
+    taiBar.style.width=kq.tai+"%";
+    xiuBar.style.width=kq.xiu+"%";
+
+    // Highlight cầu thắng
+    if(tra.kq==="TÀI")cardTai.classList.add("win");
+    else cardXiu.classList.add("win");
+
+    statusMsg.textContent="KẾT QUẢ: "+tra.kq+" ("+tra.doTinCay+"%) | Tổng: "+tra.tong;
+    statusMsg.style.color="#42a5f5";
+
+    cauInfo.innerHTML=hienThiCau(kq.cau);
+  },1200);
+});
+</script>
+</body>
+</html>
